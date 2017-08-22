@@ -5,6 +5,7 @@
 from __future__ import division
 import os
 import sys
+import shutil
 import numpy as np
 import nibabel as nib
 import geometry as geo
@@ -1076,9 +1077,9 @@ def create_dural_surface(subjects_dir=None, subject=None):
         make_dural_surface_cmd = [os.path.join(scripts_dir, 
             'make_dural_surface.csh'),'-i',os.path.join(subjects_dir, subject, 'surf','%s.pial'%hemi),
             '-p', sys.executable]
-	print make_dural_surface_cmd
+        print make_dural_surface_cmd
         p=subprocess.call(make_dural_surface_cmd)
-
+        shutil.move('%s.dural'%hemi, os.path.join(subjects_dir, subject, 'surf', '%s.dural'%hemi))
     # os.chdir(curdir)
 
 

@@ -1,0 +1,14 @@
+nibabel
+mne
+matplotlib
+chaco
+enable
+mayavi
+numpy
+pyface
+scipy
+setuptools
+traits
+traitsui
+xvfbwrapper
+mcubes
