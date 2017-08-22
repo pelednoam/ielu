@@ -4,6 +4,7 @@
 
 from __future__ import division
 import os
+import sys
 import numpy as np
 import nibabel as nib
 import geometry as geo
@@ -134,7 +135,6 @@ def identify_electrodes_in_ctspace(ct, mask=None, threshold=2500,
     print 'identifying electrode locations from CT image'
 
     from scipy import ndimage
-    import sys
 
     def get_centerofmass(isotropize=None):
         cti = nib.load(ct)   
@@ -591,6 +591,9 @@ def classify_electrodes(electrodes, known_geometry,
     used_points = []
 
     for dims in known_geometry:
+        if len(dims) == 0:
+            continue
+
         new_elecs = geo.rm_pts(np.reshape(used_points, (-1,3)), 
             np.array(electrode_arr))
 
@@ -1053,10 +1056,10 @@ def create_dural_surface(subjects_dir=None, subject=None):
     if subject is None or subject=='':
         subject = os.environ['SUBJECT']
 
-    scripts_dir = os.path.dirname(__file__)
-    os.environ['SCRIPTS_DIR'] = scripts_dir
-
-    print scripts_dir
+    # scripts_dir = os.path.dirname(__file__)
+    # os.environ['SCRIPTS_DIR'] = scripts_dir
+    scripts_dir = os.path.dirname(os.path.realpath(__file__))
+    print 'script_dir: %s' % scripts_dir
 
     if (os.path.exists(os.path.join(subjects_dir,subject,'surf','lh.dural'))
             and os.path.exists(os.path.join(subjects_dir, subject,'surf',
@@ -1066,16 +1069,18 @@ def create_dural_surface(subjects_dir=None, subject=None):
 
     import subprocess
 
-    curdir = os.getcwd()
-    os.chdir(os.path.join(subjects_dir, subject, 'surf'))
+    # curdir = os.getcwd()
+    # os.chdir(os.path.join(subjects_dir, subject, 'surf'))
 
     for hemi in ('lh','rh'):
         make_dural_surface_cmd = [os.path.join(scripts_dir, 
-            'make_dural_surface.csh'),'-i','%s.pial'%hemi]
+            'make_dural_surface.csh'),'-i',os.path.join(subjects_dir, subject, 'surf','%s.pial'%hemi),
+            '-p', sys.executable]
 	print make_dural_surface_cmd
         p=subprocess.call(make_dural_surface_cmd)
 
-    os.chdir(curdir)
+    # os.chdir(curdir)
+
 
 def get_rawavg_to_orig_xfm(subjects_dir=None, subject=None, 
         skip_rawavg_to_orig=False):

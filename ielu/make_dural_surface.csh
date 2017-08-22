@@ -41,6 +41,8 @@ set radius = 25
 set stepsize = 100
 #set echo=1
 set start=`date`
+set python_cmd = 'python -c "import sys; print(sys.executable)"'
+echo $python_cmd
 
 if($#argv == 0) then
   # zero args is not allowed
@@ -60,14 +62,26 @@ check_params_return:
 
 # check for matlab
 #set MATLAB = `getmatlab`;
-set MATLAB = 'octave'
-if($status) then
-  echo "ERROR: Matlab is required to run mris_compute_lgi!"
-  exit 1;
-endif
+# set MATLAB = 'octave'
+# if($status) then
+#   echo "ERROR: Matlab is required to run mris_compute_lgi!"
+#   exit 1;
+# endif
+
+set rootdir = `dirname $0`
+set abs_rootdir = `cd $rootdir && pwd`
+echo "abs_rootdir:"
+echo ${abs_rootdir}
+
+set input_name = `python -c "import os.path as op; print('$input'.split(op.sep)[-1])"`
+echo "input and input_name:"
+echo ${input}
+echo ${input_name}
 
 # temporary work files go here...
-set tmpdir = ($PWD/tmp-mris_compute_lgi-${input})
+set tmpdir = ($PWD/tmp-mris_compute_lgi/{$input_name})
+echo "tmpdir:"
+echo {$tmpdir}
 set cmd=(rm -Rf $tmpdir)
 echo "================="
 echo "$cmd"
@@ -83,7 +97,7 @@ if ($RunIt) $cmd
 # mris_fill
 #
 # create a filled-volume from the input surface file...
-set cmd=(mris_fill -c -r 1 ${input} ${tmpdir}/${input}.filled.mgz)
+set cmd=(mris_fill -c -r 1 ${input} ${tmpdir}/${input_name}.filled.mgz)
 echo "================="
 echo "$cmd"
 echo "================="
@@ -101,14 +115,14 @@ endif
 # make_outer_surface.m
 #
 # create the outer surface from the filled volume
-set arg1 = ${tmpdir}/${input}.filled.mgz
+set arg1 = ${tmpdir}/${input_name}.filled.mgz
 set arg2 = ${closespheresize}
-set arg3 =  ${tmpdir}/${input}-outer
-echo "mkoutersurf.py ${arg1} ${arg2} ${arg3}"
+set arg3 =  ${tmpdir}/${input_name}-outer
+echo "$python_cmd ${abs_rootdir}/mkoutersurf.py ${arg1} ${arg2} ${arg3}"
 echo "================="
 if ($RunIt) then
   pwd
-  mkoutersurf.py ${arg1} ${arg2} ${arg3}
+  $python_cmd ${abs_rootdir}/mkoutersurf.py ${arg1} ${arg2} ${arg3}
 endif
 echo ""
 if ( $RunIt && ! -e ${arg3} ) then
@@ -121,8 +135,8 @@ endif
 #
 if ($use_mris_extract) then
   set cmd=(mris_extract_main_component \
-    ${tmpdir}/${input}-outer \
-    ${tmpdir}/${input}-outer-main)
+    ${tmpdir}/${input_name}-outer \
+    ${tmpdir}/${input_name}-outer-main)
   echo "================="
   echo "$cmd"
   echo "================="
@@ -132,7 +146,7 @@ if ($use_mris_extract) then
     exit 1;
   endif
 else
-  set cmd=(cp ${tmpdir}/${input}-outer ${tmpdir}/${input}-outer-main)
+  set cmd=(cp ${tmpdir}/${input_name}-outer ${tmpdir}/${input_name}-outer-main)
   echo "================="
   echo "$cmd"
   echo "================="
@@ -148,8 +162,8 @@ endif
 #
 # smooth this jaggy, tessellated surface
 set cmd=(mris_smooth -nw -n ${smoothiters} \
-    ${tmpdir}/${input}-outer-main \
-    ./${input}-outer-smoothed)
+    ${tmpdir}/${input_name}-outer-main \
+    ./${input_name}-outer-smoothed)
 echo "================="
 echo "$cmd"
 echo "================="
@@ -172,7 +186,7 @@ echo "done."
 echo "Start: $start"
 echo "End:   $end"
 
-mv ${input}-outer-smoothed `echo ${input} | cut -c1-3`dural
+mv ${input_name}-outer-smoothed `echo ${input_name} | cut -c1-3`dural
 
 exit 0
 
@@ -220,11 +234,18 @@ while( $#argv != 0 )
     case "--input":
       if ( $#argv == 0) goto arg1err;
       set input = $argv[1]; shift;
-      #echo ${input}
+      echo "input:"
+      echo ${input}
       breaksw
 
    case "--dont_extract":
       set use_mris_extract = 0
+      breaksw
+
+   case "-p"
+      set python_cmd = $argv[1]; shift;
+      echo python_cmd:
+      echo ${python_cmd}
       breaksw
 
    case "--debug":

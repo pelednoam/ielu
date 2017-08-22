@@ -12,3 +12,7 @@ def main():
     crash_if_freesurfer_is_not_sourced()
 
     iEEGCoregistrationFrame().configure_traits()
+
+
+if __name__ == '__main__':
+    main()
