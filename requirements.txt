@@ -10,5 +10,4 @@ scipy
 setuptools
 traits
 traitsui
-xvfbwrapper
-mcubes
+PyMCubes

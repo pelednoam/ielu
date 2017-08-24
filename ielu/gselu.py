@@ -171,6 +171,7 @@ class ElectrodePositionsModel(HasPrivateTraits):
     sa_steps_total = Int(2500)
     sa_init_temp = Float(1e-3)
     sa_exp = Float(1.)
+    surf_type = 'dural' #'pial' #
 
     #state-storing interactive labeling windows
     ews = Dict(transient=True) #str -> Instance(HasTraits)
@@ -835,6 +836,7 @@ class ElectrodePositionsModel(HasPrivateTraits):
             giveup_steps=self.sa_steps_break,
             init_temp=self.sa_init_temp,
             temperature_exponent=self.sa_exp,
+            surf_type=self.surf_type
             )
 
         self._snapping_completed = True

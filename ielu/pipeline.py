@@ -1181,7 +1181,7 @@ def translate_electrodes_to_surface_space(electrodes, ct2mr,
 def snap_electrodes_to_surface(electrodes, subjects_dir=None, 
     subject=None, max_steps=40000, giveup_steps=10000, 
     init_temp=1e-3, temperature_exponent=1,
-    deformation_constant=1.):
+    deformation_constant=1., surf_type='dural'):
     '''
     Transforms electrodes from surface space to positions on the surface
     using a simulated annealing "snapping" algorithm which minimizes an
@@ -1308,11 +1308,12 @@ def snap_electrodes_to_surface(electrodes, subjects_dir=None,
         return H
 
     #load the dural surface locations
+    print('Loading %s surface'%surf_type)
     lh_dura, _ = nib.freesurfer.read_geometry(
-        os.path.join(subjects_dir, subject, 'surf', 'lh.dural'))
+        os.path.join(subjects_dir, subject, 'surf', 'lh.%s'%surf_type))
 
     rh_dura, _ = nib.freesurfer.read_geometry(
-        os.path.join(subjects_dir, subject, 'surf', 'rh.dural'))
+        os.path.join(subjects_dir, subject, 'surf', 'rh.%s'%surf_type))
 
     #lh_dura[:, 0] -= np.max(lh_dura[:, 0])
     #rh_dura[:, 0] -= np.min(rh_dura[:, 0])
