@@ -1074,12 +1074,15 @@ def create_dural_surface(subjects_dir=None, subject=None):
     # os.chdir(os.path.join(subjects_dir, subject, 'surf'))
 
     for hemi in ('lh','rh'):
+        output_fname = os.path.join(subjects_dir, subject, 'surf', '%s.dural'%hemi)
+        if os.path.isfile(output_fname):
+            continue
         make_dural_surface_cmd = [os.path.join(scripts_dir, 
             'make_dural_surface.csh'),'-i',os.path.join(subjects_dir, subject, 'surf','%s.pial'%hemi),
             '-p', sys.executable]
         print make_dural_surface_cmd
         p=subprocess.call(make_dural_surface_cmd)
-        shutil.move('%s.dural'%hemi, os.path.join(subjects_dir, subject, 'surf', '%s.dural'%hemi))
+        shutil.move('%s.dural'%hemi, output_fname)
     # os.chdir(curdir)
 
 
